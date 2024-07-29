@@ -1,0 +1,166 @@
+import random as ran
+import math
+from openalea.plantgl.all import *
+import numpy as np
+import matplotlib.pyplot as plt
+import random as ran
+
+time_factor=1; dt=1
+MaxTime= time_factor * 480*2;
+MaxSegmentLength = 0.4
+
+####### Define Root State Classes #######
+class SideData:
+	def __init__(self, **kwd):
+		self.__dict__.update(kwd)
+
+
+class Gravitropism:
+	def __init__(self, **kwd):
+		self.Euler_x = 0;		self.Euler_y = 90;	self.Euler_z = 180
+		self.counter = 0;   self. side =0;
+		self.__dict__.update(kwd)
+
+class state:
+	def __init__(self, **kwd):
+		self.__dict__.update(kwd)
+		self.init_time = 0;	self.side = 0; 	self.order     = 0;  	self.segments = 0; self.priming_counter = 0
+		self.length =  MaxSegmentLength;		
+		self.__dict__.update(kwd)
+		
+## Define WT and Mutant plant
+Roots1 = SideData(total_size = 0, lats = 0, LR =1, primary_length =0, secondary_length = 0, meristem_size = 0,Primordia=0)
+Roots2 = SideData(total_size = 0, lats = 0, LR =1, primary_length =0, secondary_length = 0, meristem_size = 0,Primordia=0)
+
+####### Define start and end simulation (plots, save data etc.) #######
+def Start():
+	global TAdiv1, TAdiv2; TAdiv1 =  basal1/time_factor; TAdiv2 =  basal2/time_factor; 
+	plt.close("all")
+	global time;	time = 0;	global time_store;  time_store = np.array(0);
+	global LRn1_store;  LRn1_store = np.array(0);	global LRn2_store;  LRn2_store = np.array(0);
+	global Root1_store; Root1_store = np.array(Roots1.total_size);	global Root2_store; Root2_store = np.array(Roots2.total_size);
+	global LR1_store;		LR1_store = np.array(Roots1.secondary_length);	global LR2_store;		LR2_store = np.array(Roots2.secondary_length);
+	global PR1_store;		PR1_store = np.array(Roots1.primary_length);	global PR2_store;		PR2_store = np.array(Roots2.primary_length);
+
+def StartEach():
+	global time;
+	time += dt
+
+def EndEach():
+	global Root1_store, Root2_store,Root3_store,LR1_store,LR2_store,LR3_store,PR1_store,PR2_store,PR3_store,LRn1_store,LRn2_store,time_store, time
+	if time % (1) == 0:
+		time_store = np.append(time_store, time);
+		LRn1_store = np.append(LRn1_store, Roots1.lats);		LRn2_store = np.append(LRn2_store, Roots2.lats);
+		Root1_store = np.append(Root1_store,Roots1.total_size);		Root2_store = np.append(Root2_store,Roots2.total_size);
+		LR1_store = np.append(LR1_store,Roots1.secondary_length);		LR2_store = np.append(LR2_store,Roots2.secondary_length);
+		PR1_store = np.append(PR1_store,Roots1.primary_length);		PR2_store = np.append(PR2_store,Roots2.primary_length);
+		if time == 240*time_factor:
+			global TL1_d10, TL2_d10, LRn1_d10, LRn2_d10, BI1_d10, BI2_d10
+			TL1_d10 = Roots1.total_size; TL2_d10 = Roots2.total_size
+			LRn1_d10=Roots1.lats;LRn2_d10=Roots2.lats
+			BI1_d10 = LRn1_d10/TL1_d10; BI2_d10 = LRn2_d10/TL2_d10;
+		elif time == 336*time_factor:
+			global TL1_d14, TL2_d14, LRn1_d14, LRn2_d14, BI1_d14, BI2_d14
+			TL1_d14 = Roots1.total_size; TL2_d14 = Roots2.total_size
+			LRn1_d14=Roots1.lats;LRn2_d14=Roots2.lats
+			BI1_d14 = LRn1_d14/TL1_d14; BI2_d14 = LRn2_d14/TL2_d14;
+		elif time == 480*time_factor:
+			global TL1_d20, TL2_d20, LRn1_d20, LRn2_d20, BI1_d20, BI2_d20
+			TL1_d20 = Roots1.total_size; TL2_d20 = Roots2.total_size
+			LRn1_d20=Roots1.lats;LRn2_d20=Roots2.lats
+			BI1_d20 = LRn1_d20/TL1_d20; BI2_d20 = LRn2_d20/TL2_d20;
+
+Axiom: MoveRel(0,0,0)  EulerAngles(180,270,0) [RS(state(length=0.1*MaxSegmentLength,plant=1)) RA(state(length=0.01*MaxSegmentLength,plant=1), Gravitropism())] MoveRel(0,0,10)  MoveRel(50,0,-10) [RS(state(length=0.1*MaxSegmentLength,plant=2)) RA(state(length=0.01*MaxSegmentLength,plant=2), Gravitropism())]
+####### Define simulation time #######
+derivation length: MaxTime
+
+####### Growth rules #######
+production:
+RA(state_ra,g):
+	age = 	time - state_ra.init_time;
+	Km_meristemsize_age = 48*time_factor;
+	
+	if state_ra.plant == 1:
+		maxMeristemSize = ml1; Roots = Roots1;TAdiv=TAdiv1
+		radius = 0.15 * age / (age + 72);
+	elif state_ra.plant == 2:
+		maxMeristemSize = ml2; Roots = Roots2;TAdiv=TAdiv2
+		radius = 0.006 * age / (age + 72);
+	
+	state_ra.meristem_size = max(1,maxMeristemSize * age**2 / (age**2 + Km_meristemsize_age**2));
+	TAd=  (TAdiv) * time_factor*g_l**(state_ra.order);
+	SCdiv=TAd/5; beta= 0.35;
+	freq = 0.33*(TAd +( beta*(TAd-SCdiv) - ((TAd-SCdiv)/state_ra.meristem_size)) * np.log2(state_ra.meristem_size)) 
+	state_ra.priming_counter = state_ra.priming_counter + dt;
+	priming_time = 3/3* round(1/(freq/time_factor));
+	
+	if age %(priming_time) == 0:
+		new_rp = state(); new_rp.init_time=time; new_rp.order =1; new_rp.length=0; new_rp.plant=state_ra.plant; new_rp.order = state_ra.order+1;new_rp.segments=0;
+		new_rs = state(length=state_ra.length,plant = state_ra.plant);
+		
+		state_ra.length= 0;	state_ra.segments = state_ra.segments +1;
+		state_ra.length = state_ra.length + calcGrowth(state_ra);
+		Roots.total_size = Roots.total_size+ calcGrowth(state_ra);
+		
+		if state_ra.order == 0:
+			Roots.primary_length = Roots.primary_length + calcGrowth(state_ra)
+		elif state_ra.order > 0:
+			Roots.secondary_length = Roots.secondary_length + calcGrowth(state_ra)
+		state_ra.priming_counter = 0;
+		
+		Roots.LR = Roots.LR  * -1; new_rp.LR = 	Roots.LR; state_ra.LR= Roots.LR
+		if state_ra.order==0 :
+			Roots.Primordia = Roots.Primordia+1
+			produce RS(new_rs) [&(Roots.LR * 60)   RP(new_rp,g)]  &(ran.randint(-2,2)) RA(state_ra,g)
+		elif state_ra.order > 0 and state_ra.order < 2:
+			Roots.Primordia = Roots.Primordia+1;
+			produce  RS(new_rs) [&(Roots.LR * 60)   RP(new_rp,g)]  &(state_ra.LR*-5) RA(state_ra,g)
+		else:
+			produce RS(new_rs) &(ran.randint(-2,2)) RA(state_ra,g)
+	
+	#Grow if RA is smaller than max size
+	else:
+		state_ra.length = state_ra.length + calcGrowth(state_ra)
+		Roots.total_size = Roots.total_size+ calcGrowth(state_ra);
+		if state_ra.order == 0:
+			Roots.primary_length = Roots.primary_length + calcGrowth(state_ra)
+		elif state_ra.order > 0:
+			Roots.secondary_length = Roots.secondary_length + calcGrowth(state_ra)
+		produce RA(state_ra,g)
+
+RP(state_rp,g):
+	if   state_rp.plant == 1: Roots = Roots1; em_age = em_age1; 
+	elif state_rp.plant == 2: Roots = Roots2; em_age = em_age2; 
+	
+	age = 	time - state_rp.init_time;
+	if age == em_age*time_factor :
+		Emergence_succes =  em;
+		
+		if ran.random()<=Emergence_succes:
+			Roots.lats = Roots.lats+ 1;
+			state_rp.length=0;
+			state_rp.init_time = time;
+			produce  RA(state_rp,g)
+		else:
+			produce
+
+#### Graphical representation ####
+interpretation:
+
+RA(state_ra,g):
+	produce: ,(0)F(np.float(state_ra.length*10), 0.15)
+
+RS(state_rs):
+	produce: ,(0)F(np.float(state_rs.length*10), 0.25)
+endlsystem
+
+def calcGrowth(statex):
+	global TAdiv1, TADiv2
+	if statex.plant == 1:
+		maxMeristemSize = 20; Roots = Roots2;TAdiv=TAdiv1
+	elif statex.plant == 2:
+		maxMeristemSize = 40; Roots = Roots1;TAdiv=TAdiv2
+	cellproduction = np.log(2)*statex.meristem_size*TAdiv
+	elongation_rate_TA = 0.0025#0.0025 # (cm/cell/hr)
+	growth = cellproduction*elongation_rate_TA * (g_l**(statex.order))
+	return growth
