@@ -24,7 +24,7 @@ class state:
 	def __init__(self, **kwd):
 		self.__dict__.update(kwd)
 		self.init_time = 0;	self.side = 0; 	self.order     = 0;  	self.segments = 0; self.priming_counter = 0
-		self.length =  MaxSegmentLength;		
+		self.length =  MaxSegmentLength;	self.timed_priming = 0;	
 		self.__dict__.update(kwd)
 
 Roots1 = SideData(total_size = 0, lats = 0, LR =1, primary_length =0, secondary_length = 0, meristem_size = 0,Primordia=0, FW=0)
@@ -82,20 +82,23 @@ RA(state_ra,g):
 		radius = 0.006 * age / (age + 72);
 	
 	state_ra.meristem_size = max(1,maxMeristemSize * age**2 / (age**2 + Km_meristemsize_age**2));
-	TAd= 0.25 * (TAdiv) * time_factor;
-	SCdiv=TAd/5; beta= 0.35;
-	freq = 0.5*(TAd +( beta*(TAd-SCdiv) - ((TAd-SCdiv)/state_ra.meristem_size)) * np.log2(state_ra.meristem_size)) 
-	state_ra.priming_counter = state_ra.priming_counter + dt;
 	
-	priming_time = 3/3* round(1/(freq/time_factor));
+	### Priming function
+	TAd=  0.225*TAdiv * time_factor * (g_l**state_ra.order);
+	ratio=5
+	SCdiv=TAd/ratio; beta= 0.35;
+	cellproduction = np.log(2)*state_ra.meristem_size*TAd
+	em_rate = stoch *(0.05*cellproduction+0.029)/(0.109*cellproduction+0.29)  #van der berg et al., 2021 - Fig 7
+	freq =em_rate*(TAd +( beta*(TAd-SCdiv) - ((TAd-SCdiv)/state_ra.meristem_size)) * np.log2(state_ra.meristem_size)) 
+	priming_time = round(1/(freq/time_factor));
 	
-	if age %(priming_time) == 0:# or state_ra.length > maxLength:
+	if (age - state_ra.timed_priming)  / (priming_time) >= 1:
 		new_rp = state(); new_rp.init_time=time; new_rp.order =1; new_rp.length=0; new_rp.plant=state_ra.plant; new_rp.order = state_ra.order+1;new_rp.segments=0;
 		new_rs = state(length=state_ra.length,plant = state_ra.plant);
-
 			
 		state_ra.length= 0;	state_ra.segments = state_ra.segments +1;
-		
+		state_ra.timed_priming = age;
+	
 		state_ra.length = state_ra.length + calcGrowth(state_ra);
 		Roots.total_size = Roots.total_size+ calcGrowth(state_ra);
 		Roots.FW = Roots.FW + (calcGrowth(state_ra) * np.pi * radius * radius)
@@ -110,7 +113,7 @@ RA(state_ra,g):
 			Roots.Primordia = Roots.Primordia+1
 			produce RS(new_rs) [&(Roots.LR * 60)   RP(new_rp,g)]  &(ran.randint(-2,2)) RA(state_ra,g)
 		
-		elif state_ra.order > 0 and state_ra.order < maxOrder and state_ra.segments > 0:
+		elif state_ra.order > 0 :
 			Roots.Primordia = Roots.Primordia+1;
 			produce  RS(new_rs) [&(Roots.LR * 60)   RP(new_rp,g)]  &(state_ra.LR*-5) RA(state_ra,g)
 		
@@ -133,7 +136,7 @@ RP(state_rp,g):
 	
 	age = 	time - state_rp.init_time;
 	if age == em_age*time_factor :
-		Emergence_succes =  em;
+		Emergence_succes =  1;
 		
 		if ran.random()<=Emergence_succes:
 			Roots.lats = Roots.lats+ 1;
@@ -156,12 +159,11 @@ endlsystem
 def calcGrowth(statex):
 	global TAdiv1, TADiv2
 	if statex.plant == 1:
-		maxMeristemSize = 20; Roots = Roots2;TAdiv=TAdiv1
+		TAd=TAdiv1* (g_l**statex.order)
 	elif statex.plant == 2:
-		maxMeristemSize = 40; Roots = Roots1;
-		if time < 7*24: TAdiv = 0.025
-		else: TAdiv=TAdiv2	
-	cellproduction = np.log(2)*statex.meristem_size*TAdiv
-	elongation_rate_TA = 0.0025#0.0025 # (cm/cell/hr)
-	growth = cellproduction*elongation_rate_TA * (g_l**statex.order)
+		TAd=TAdiv2* (g_l**statex.order)
+		
+	cellproduction = np.log(2)*statex.meristem_size*TAd
+	elongation_rate_TA = 0.0025
+	growth = cellproduction*elongation_rate_TA 
 	return growth

@@ -5,7 +5,7 @@ import pandas as pd;import seaborn as sns;
 
 
 def Lsystem_calc(runs):
-    sim = 'BI_Sigal_Sugar_Radial.lpy';
+    sim = 'Model4.lpy';
     if runs < 50: bas2 = 0.075;                          ml2= ran.randint(20,25)
     elif runs >=50 and runs <100:  bas2 = 0.05+0.05;     ml2= ran.randint(20,25)
     elif runs >=100 and runs <150: bas2 = 0.075+0.05;    ml2= ran.randint(20,25)
@@ -15,12 +15,12 @@ def Lsystem_calc(runs):
 
     #Division Rate
     bas1= 0.25;
-    # bas1 = ran.uniform(0.2, 0.25);
-    # bas2= ran.uniform(0.1, 0.125)
     ml1= ran.randint(30,32)
     ml2= ran.randint(22,25)
 
-    l = Lsystem(sim,{'maxOrder' :3,  'em' :1/6, 'em_age': 36, 'g_l' :0.6, 'basal1': bas1, 'basal2':bas2, 'ml1':ml1, 'ml2':ml2}); #, 'maxMeristemSize': ml})
+    alpha = ran.uniform(0.85, 1.15 )
+
+    l = Lsystem(sim,  { 'stoch': alpha,   'em_age': 84, 'g_l' :0.66, 'basal1': bas1, 'basal2':bas2, 'ml1':ml1, 'ml2':ml2});
     lstring = l.derive()
     try :
         lat1_l = l.Roots1.secondary_length.item(); lat2_l = l.Roots2.secondary_length.item();lat3_l = l.Roots3.secondary_length.item()
@@ -44,10 +44,7 @@ with multiprocessing.Pool() as pool:
 Data = Data_runs;
 # Data.reindex();
 
-exp_data = pd.read_excel('~/Projects/Ara_FSPM/RootRatio/ModelSigal/Ara/AraPlot.xlsx')
-
-path = 'SugarFigure/stable_meristem';
-Data.to_csv(path + '.csv')
+exp_data = pd.read_excel('AraPlot.xlsx')
 
 Data_plot = pd.concat([exp_data,Data])
 
@@ -75,22 +72,15 @@ axis[0,0].set_ylim(0,250);axis[1,0].set_ylim(0,250);
 axis[0,1].set_ylim(0,125);axis[1,1].set_ylim(0,125);
 axis[0,2].set_ylim(0,5);  axis[1,2].set_ylim(0,5);
 axis[0,3].set_ylim(0,25); axis[1,3].set_ylim(0,25);
-
 plt.tight_layout()
-plt.savefig(path + '_boxplot.png')
-plt.savefig(path + '_boxplot.svg')
 
-fig, axis = plt.subplots(figsize=(5,4))
-plt.scatter(x,y,s=size, c =color, cmap='Reds' ,edgecolors = 'grey')
-plt.savefig(path + '_scatter.png')
-plt.savefig(path + '_satter.svg')
+
 
 fig, axis = plt.subplots(figsize=(5,4))
 plt.scatter(Data['TAdiv'],Data['FW'],s=Data['TL'], c =Data['LRn'], cmap='Reds' ,edgecolors = 'grey')
-plt.savefig(path + '_scatter_all.png')
-plt.savefig(path + '_scatter_all.svg')
 
-Data075 =  exp_data[(exp_data['TAdiv'] == 'CPD_0') ]; print(Data075)
+
+Data075 =  exp_data[(exp_data['TAdiv'] == 'CPD_0') ]; 
 Data100 =  exp_data[(exp_data['TAdiv'] == 'CPD_0_2')];
 Data125 =  exp_data[(exp_data['TAdiv'] == 'CPD_0_5')]
 Data150 =  exp_data[(exp_data['TAdiv'] == 'CPD_1')]
@@ -124,15 +114,23 @@ size_data =[np.mean( np.array(Data250['TL']), axis=0 )*5,
       np.mean( np.array(Data175['TL']), axis=0 )*5,
       np.mean( np.array(Data200['TL']), axis=0 )*5
 ]
-# WT_LRn_m = np.mean( np.array(Data_075['LRn_time']), axis=0 );WT_LRn_s =np.std( np.array(DataWT['LRn_time']), axis=0 )
 
 fig, axis = plt.subplots(figsize=(4,3))
-plt.scatter(x_data,y_data,s=size_data, c =color_data, cmap='Reds' ,edgecolors = 'grey', marker='s')
-plt.scatter(x,y,s=size, c =color, cmap='Reds' ,edgecolors = 'grey')
+x = [0,0.25,0.5,1,1.5,2,0];
+y = exp_data.groupby('TAdiv')['FW'].mean().values
+size = 5*exp_data.groupby('TAdiv')['TL'].mean().values
+colors = exp_data.groupby('TAdiv')['LRn'].mean().values
+plt.scatter(x,y,s=size, c =colors, cmap='Reds' ,edgecolors = 'grey', marker='s')
 
+#model
+x = [0,0.25,0.5,1,1.5,2,0];
+y = Data.groupby('TAdiv')['FW'].mean().values
+size = 5*Data.groupby('TAdiv')['TL'].mean().values
+colors = Data.groupby('TAdiv')['LRn'].mean().values
+plt.scatter(x,y, s=size, c =colors, cmap='Reds' ,edgecolors = 'grey')
 plt.colorbar()
-plt.savefig(path + '_scatter_data.png')
-plt.savefig(path + '_scatter_data.svg')
+axis.set_ylabel('Fresh Weight (g)')
+axis.set_xlabel('Sugar Concentration (%)')
 
 
 

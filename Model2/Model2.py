@@ -4,18 +4,18 @@ import numpy as np;import random as ran;
 import pandas as pd;import seaborn as sns;
 
 
-exp_data = pd.read_csv('~/Projects/BR_Branching/Model_2/TMTcomb.csv')
-
 def Lsystem_calc(runs):
     sim = 'Model2.lpy';
     #Division Rate
-    bas1= ran.uniform(0.06, 0.075);    bas2= ran.uniform(0.03, 0.0375)
+    bas1 = ran.uniform(0.16, 0.2);    bas2= ran.uniform(0.08, 0.1)
     #meristem size
     ml1=ran.randint(110,130);    ml2=ran.randint(80,100)
 
-    em_age1 = 48;    em_age2 = 120
+    em_age1 = 84;    em_age2 = 120
 
-    l = Lsystem(sim,{ 'em' :1/2, 'em_age1': em_age1, 'em_age2': em_age2, 'g_l' :0.8, 'basal1': bas1, 'basal2':bas2, 'ml1':ml1, 'ml2':ml2}); #, 'maxMeristemSize': ml})
+    alpha = ran.uniform(0.85, 1.15 )
+
+    l = Lsystem(sim,  { 'stoch': alpha, 'em' :1, 'em_age1': em_age1, 'em_age2': em_age2, 'g_l' :0.4, 'basal1': bas1, 'basal2':bas2, 'ml1':ml1, 'ml2':ml2}); #, 'maxMeristemSize': ml})
     lstring = l.derive()
     try :
         lat1_l = l.Roots1.secondary_length.item(); lat2_l = l.Roots2.secondary_length.item();
@@ -34,16 +34,16 @@ with multiprocessing.Pool() as pool:
     Data_multi = pool.map(Lsystem_calc, runs)
     Data_runs = pd.concat(Data_multi)
 
-path = 'Output/';
+
 
 #Plots
 Data = Data_runs;
-Data.reindex();
 DataWT =  Data[(Data['Genotype'] == 'WT') ]
 DataMut = Data[(Data['Genotype'] == 'Mutant') ]
-
 Time = Data['Time'].mean()/(24)
 
+exp_data = pd.read_csv('TomatoPlot.csv')
+Data_plot = pd.concat([exp_data,Data])
 
 WT_LRn_m = np.mean( np.array(DataWT['LRn_time']), axis=0 );WT_LRn_s =np.std( np.array(DataWT['LRn_time']), axis=0 )
 WT_TL_m  = np.mean( np.array(DataWT['TL_time']), axis=0 ); WT_TL_s   =np.std( np.array(DataWT['TL_time']), axis=0 )
@@ -61,33 +61,19 @@ axis.fill_between(Time, Mut_BI_m-Mut_BI_s,Mut_BI_m+Mut_BI_s,alpha = 0.5)
 axis.set_xlabel('Time (day))'); axis.set_xlim(0,30)
 plt.tight_layout();plt.legend()
 
-sns.scatterplot(data=exp_data, x='dpg',y='BI', hue='Genotype', legend=False)
-axis.set_ylabel('Branching Index (LR/cm)');
-axis.set_ylim(0,2)
-
-plt.savefig(path + 'timeplot_new.png')
-plt.savefig(path + 'timeplot_new.svg')
-
 fig, axis = plt.subplots(nrows=1, figsize=(8,6))
 axis.plot(WT_TL_m, WT_BI_m,label = 'WT')
 axis.fill_between(WT_TL_m, WT_BI_m-WT_BI_s,WT_BI_m+WT_BI_s,alpha = 0.5)
 axis.plot(Mut_TL_m, Mut_BI_m,label = 'Mutant');
 axis.fill_between(Mut_TL_m, Mut_BI_m-Mut_BI_s,Mut_BI_m+Mut_BI_s,alpha = 0.5)
-axis.set_xlabel('Total Length (cm)'); axis.set_xlim(0,200)
+axis.set_xlabel('Total Length (cm)'); axis.set_xlim(0,100)
 plt.tight_layout();plt.legend(['WT','bri'])
-sns.scatterplot(data=exp_data, x='Total_root_length',y='BI', hue='Genotype', legend=False, s=50)
 
 predBI = 6.48/np.sqrt(WT_TL_m) - 5.6/WT_TL_m
 axis.plot(WT_TL_m,predBI, color = 'grey',alpha = 0.95)
-
 axis.set_ylabel('Branching Index (LR/cm)');
 axis.set_ylim(0,2)
-plt.savefig(path + 'lengthplot_new.svg')
-plt.savefig(path + 'lengthplot_new.png')
 
-
-exp_data = pd.read_csv('~/Projects/BR_Branching/Model_2/TomatoPlot.csv')
-Data_plot = pd.concat([exp_data,Data])
 fig, axis = plt.subplots(ncols=3, nrows=3, figsize=(8,6))
 sns.boxplot(data=Data_plot, x = 'Type', y='LRn_d10', hue='Genotype', ax=axis[0,0])
 sns.boxplot(data=Data_plot, x = 'Type', y='TL_d10', hue='Genotype', ax=axis[0,1])
@@ -102,7 +88,4 @@ sns.boxplot(data=Data_plot, x = 'Type', y='LRn_d20', hue='Genotype', ax=axis[2,0
 sns.boxplot(data=Data_plot, x = 'Type', y='TL_d20', hue='Genotype', ax=axis[2,1])
 sns.boxplot(data=Data_plot, x = 'Type', y='BI_d20', hue='Genotype', ax=axis[2,2])
 plt.tight_layout()
-plt.savefig(path + 'boxplot_new.png')
-plt.savefig(path + 'boxplot_new.svg')
-
 plt.show()

@@ -85,14 +85,14 @@ def EndEach():
 			LR1_d0 = Roots1.secondary_length;		LR2_d0= Roots2.secondary_length;LR3_d0= Roots3.secondary_length;LR4_d0= Roots4.secondary_length;
 			
 			FW1_d0= TL1_d0 * np.pi *(0.15 *0.15)*2.5*4
-			FW2_d0= TL2_d0 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*1.5*4
+			FW2_d0= TL2_d0 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*4
 			FW3_d0= TL3_d0 * np.pi *(0.15 *0.15)*2.5*4
-			FW4_d0= TL4_d0 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*1.5*4	
+			FW4_d0= TL4_d0 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*4	
 			
 		if time ==time_factor*(24* t2 +pre*24):
 			global TL1_d7, TL2_d7, TL3_d7,TL4_d7,LRn1_d7, LRn2_d7,LRn3_d7,LRn4_d7, BI1_d7, BI2_d7,BI3_d7,BI4_d7, FW1_d7, FW2_d7,FW3_d7,FW4_d7
 			TL1_d7 = Roots1.total_size; TL2_d7 = Roots2.total_size;TL3_d7 = Roots3.total_size;TL4_d7= Roots4.total_size
-			LRn1_d7=Roots1.lats;LRn2_d7=Roots2.lats;	LRn3_d7=Roots3.lats;LRn4_d7=Roots4.lats
+			LRn1_d7=Roots1.lats;LRn2_d7=Roots2.lats;	LRn3_d7=Roots3.lats;LRn4_d7=Roots4.lats-1
 			BI1_d7= LRn1_d7/TL1_d7; BI2_d7 = LRn2_d7/TL2_d7;BI3_d7= LRn3_d7/TL3_d7; BI4_d7 = LRn4_d7/TL4_d7;
 			
 			global PR1_d7,PR2_d7,PR3_d7,PR4_d7,LR1_d7,LR2_d7,LR3_d7,LR4_d7
@@ -100,20 +100,20 @@ def EndEach():
 			LR1_d7 = Roots1.secondary_length;			LR2_d7= Roots2.secondary_length;LR3_d7= Roots3.secondary_length;LR4_d7= Roots4.secondary_length;
 			
 			FW1_d7= TL1_d7 * np.pi *(0.15 *0.15)*2.5*4
-			FW2_d7= TL2_d7 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*1.5*4
+			FW2_d7= TL2_d7 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*4
 			FW3_d7= TL3_d7 * np.pi *(0.15 *0.15)*2.5*4
-			FW4_d7= TL4_d7 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*1.5	*4
+			FW4_d7= TL4_d7 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*4
 			
 		if time ==time_factor*(24 * t3 +pre*24):
 			global TL1, TL2, TL3,TL4,LRn1, LRn2,LRn3,LRn4, BI1, BI2,BI3,BI4, FW1, FW2,FW3,FW4
 			TL1 = Roots1.total_size; TL2 = Roots2.total_size;TL3 = Roots3.total_size;TL4 = Roots4.total_size
-			LRn1=Roots1.lats;LRn2=Roots2.lats;	LRn3=Roots3.lats;LRn4=Roots4.lats
+			LRn1=Roots1.lats;LRn2=Roots2.lats;	LRn3=Roots3.lats;LRn4=Roots4.lats-1
 			BI1= LRn1/TL1; BI2 = LRn2/TL2;BI3= LRn3/TL3; BI4 = LRn4/TL4;
 			
 			FW1= TL1 * np.pi *(0.15 *0.15)*2.5*4
-			FW2= TL2 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*1.5*4
+			FW2= TL2 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*4
 			FW3= TL3 * np.pi *(0.15 *0.15)*2.5*4
-			FW4= TL4 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*1.5*4
+			FW4= TL4 * np.pi *(0.15 *0.15*1.25*1.25)*2.5*4
 
 Axiom:  MoveRel(-75,0,0)  EulerAngles(180,270,90) [RS(state(length=0.1*MaxSegmentLength,plant=1)) RA(state(length=0.01*MaxSegmentLength,plant=1), Gravitropism())] MoveRel(0,0,10)  MoveRel(50,0,-10) [RS(state(length=0.1*MaxSegmentLength,plant=2)) RA(state(length=0.01*MaxSegmentLength,plant=2), Gravitropism())] MoveRel(50,0,-10) [RS(state(length=0.1*MaxSegmentLength,plant=3)) RA(state(length=0.01*MaxSegmentLength,plant=3), Gravitropism())]  MoveRel(50,0,-10) [RS(state(length=0.1*MaxSegmentLength,plant=4)) RA(state(length=0.01*MaxSegmentLength,plant=4), Gravitropism())]
 
@@ -135,15 +135,19 @@ RA(state_ra,g):
 		if time<pre*24:  maxMeristemSize = ml1; Roots = Roots3;TAdiv=TAdiv1
 		else: maxMeristemSize = ml1; Roots = Roots3;TAdiv=TAdiv3
 	elif state_ra.plant == 4:
-		maxMeristemSize = ml2; Roots = Roots4;TAdiv=TAdiv4
+		maxMeristemSize = ml2-5; Roots = Roots4;TAdiv=TAdiv4
 	
 	state_ra.meristem_size = max(1,maxMeristemSize * age**2 / (age**2 + Km_meristemsize_age**2));
-	TAd= (TAdiv) * time_factor*g_l**(state_ra.order);	SCdiv=TAd/5; beta= 0.35;
-	freq = 0.15*(TAd +( beta*(TAd-SCdiv) - ((TAd-SCdiv)/state_ra.meristem_size)) * np.log2(state_ra.meristem_size)) 
-	state_ra.priming_counter = state_ra.priming_counter + dt;
-	
-	priming_time = 3/3* round(1/(freq/time_factor));
-	
+	state_ra.meristem_size = round(state_ra.meristem_size)
+
+	TAd= TAdiv * time_factor * (g_l**(state_ra.order*2))  ;
+	ratio=5
+	SCdiv=TAd/ratio; beta= 0.35;
+	cellproduction = np.log(2)*state_ra.meristem_size*TAd
+	em_rate = 0.2 *  stoch*(0.05*cellproduction+0.029)/(0.109*cellproduction+0.29) #van der berg et al., 2021 - Fig 7
+	freq = em_rate*(TAd +( beta*(TAd-SCdiv) - ((TAd-SCdiv)/state_ra.meristem_size)) * np.log2(state_ra.meristem_size)) 
+	priming_time = round(1/(freq/time_factor));
+        
 	if age %(priming_time) == 0:
 		new_rp = state(); new_rp.init_time=time; new_rp.order =1; new_rp.length=0; new_rp.plant=state_ra.plant; new_rp.order = state_ra.order+1;new_rp.segments=0;
 		new_rs = state(length=state_ra.length,plant = state_ra.plant);
@@ -223,7 +227,7 @@ def calcGrowth(statex):
 		if time<pre*24:  maxMeristemSize = ml1; Roots = Roots3;TAdiv=TAdiv1
 		else: maxMeristemSize = ml1; Roots = Roots3;TAdiv=TAdiv3
 	elif statex.plant == 4:
-		maxMeristemSize = ml2; Roots = Roots4;TAdiv=TAdiv4
+		maxMeristemSize = ml2-5; Roots = Roots4;TAdiv=TAdiv4
 			
 	cellproduction = np.log(2)*statex.meristem_size*TAdiv
 	elongation_rate_TA = 0.0025#0.0025 # (cm/cell/hr)
